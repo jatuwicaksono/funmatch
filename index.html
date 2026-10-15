@@ -51,8 +51,8 @@
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
     <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-black text-lg">
-          KKG
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-black text-sm tracking-wide">
+  KKG
         </div>
         <div>
           <span class="block text-[10px] uppercase font-bold tracking-widest text-brand-500">Kalijaga Fest 2026</span>
@@ -92,7 +92,7 @@
         <form id="regForm" onsubmit="handleRegistration(event)" class="mt-4 space-y-3.5">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap / Panggilan</label>
-            <input type="text" id="inputName" required placeholder="Contoh: Pak Ahmad" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-500 text-white placeholder-slate-600">
+            <input type="text" id="inputName" required placeholder="Contoh: Pak Akhmad" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-500 text-white placeholder-slate-600">
           </div>
 
           <div>
@@ -102,7 +102,7 @@
               <option value="SDN Kalijaga Permai">SDN Kalijaga Permai</option>
               <option value="SDN Taman Kalijaga Permai">SDN Taman Kalijaga Permai</option>
               <option value="SDN Penggung 1">SDN Penggung 1</option>
-              <option value="SDN Kebon Pelok">SDN Pelok</option>
+              <option value="SDN Kebon Pelok">SDN Kebon Pelok</option>
               <option value="SDN Pesantren">SDN Pesantren</option>
               <option value="SDN Argasunya">SDN Argasunya</option>
               <option value="SD CIS">SD CIS</option>
@@ -299,9 +299,9 @@
 
       <!-- PIN Input View -->
       <div id="adminAuthView" class="space-y-3">
-        <label class="block text-xs text-slate-400">Masukkan PIN Admin (Default: 1234)</label>
+        <label class="block text-xs text-slate-400">Masukkan PIN Admin</label>
         <input type="password" id="adminPinInput" placeholder="••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-bold tracking-widest text-white focus:outline-none focus:border-brand-500">
-        <button onclick="verifyAdminPin()" class="w-full py-2.5 bg-brand-500 text-white font-bold text-xs rounded-xl">Masuk Panel</button>
+        <button onclick="verifyAdminPin()" class="w-full py-2.5 bg-brand-500 text-white font-bold text-xs rounded-xl">Masuk</button>
       </div>
 
       <!-- Admin Controls View -->
@@ -338,7 +338,7 @@
 
         <!-- Custom Team Names -->
         <div class="space-y-2 border-t border-slate-800 pt-3">
-          <label class="font-bold text-slate-300 block">Ubah Nama Tim Real-time:</label>
+          <label class="font-bold text-slate-300 block">Ubah Nama Tim:</label>
           <p class="text-[10px] text-slate-500">Nama Tim Putra (A/B/C/D) & Putri (A/B/C/D)</p>
           <div class="grid grid-cols-2 gap-1.5">
             <input type="text" id="tPutraA" value="Tim Putra A" onchange="saveTeamNames()" class="bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-white">
@@ -687,7 +687,7 @@
         document.getElementById('adminAuthView').classList.add('hidden');
         document.getElementById('adminControlView').classList.remove('hidden');
       } else {
-        alert('PIN Admin Salah! (Gunakan: 1234)');
+        alert('PIN Admin Salah!');
       }
     }
 
