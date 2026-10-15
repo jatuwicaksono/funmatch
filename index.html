@@ -69,13 +69,16 @@
   <!-- Main App View -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-6">
 
-    <!-- Tab Navigation -->
-    <div class="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
-      <button id="tabRegBtn" onclick="switchTab('reg')" class="py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md">
-        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Registrasi
+    <!-- Tab Navigation (3 Tabs) -->
+    <div class="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+      <button id="tabRegBtn" onclick="switchTab('reg')" class="py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1 shadow-md">
+        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Register
       </button>
-      <button id="tabDashBtn" onclick="switchTab('dash')" class="py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5">
-        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Live Score & Bagan
+      <button id="tabTeamsBtn" onclick="switchTab('teams')" class="py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1">
+        <i data-lucide="users" class="w-3.5 h-3.5"></i> Skuad Tim
+      </button>
+      <button id="tabDashBtn" onclick="switchTab('dash')" class="py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1">
+        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Live Score
       </button>
     </div>
 
@@ -99,7 +102,7 @@
               <option value="SDN Kalijaga Permai">SDN Kalijaga Permai</option>
               <option value="SDN Taman Kalijaga Permai">SDN Taman Kalijaga Permai</option>
               <option value="SDN Penggung 1">SDN Penggung 1</option>
-              <option value="SDN Kebon Pelok">SDN Pelok</option>
+              <option value="SDN Kebon Pelok">SDN Kebon Pelok</option>
               <option value="SDN Pesantren">SDN Pesantren</option>
               <option value="SDN Argasunya">SDN Argasunya</option>
               <option value="SD CIS">SD CIS</option>
@@ -139,11 +142,30 @@
           <div id="resTeamName" class="text-2xl font-black text-amber-400 mt-1">TIM A</div>
         </div>
 
-        <button onclick="resetFormView()" class="text-xs text-slate-400 underline hover:text-slate-200 pt-1">Daftarkan Peserta Lain</button>
+        <div class="pt-2 flex flex-col gap-2">
+          <button onclick="switchTab('teams')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-brand-400 rounded-xl flex items-center justify-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i> Lihat Semua Anggota Tim
+          </button>
+          <button onclick="resetFormView()" class="text-xs text-slate-400 underline hover:text-slate-200">Daftarkan Peserta Lain</button>
+        </div>
       </div>
     </section>
 
-    <!-- VIEW 2: DASHBOARD BRACKET & LIVE SCORE -->
+    <!-- VIEW 2: SKUAD & ANGGOTA TIM (NEW) -->
+    <section id="viewTeams" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+          <i data-lucide="users" class="w-4 h-4 text-brand-500"></i> Anggota Skuad Per Tim
+        </h2>
+        <span id="totalPlayerBadge" class="text-[10px] font-bold px-2 py-1 bg-brand-500/10 text-brand-400 rounded-lg border border-brand-500/20">0 Peserta</span>
+      </div>
+
+      <div id="teamsContainer" class="space-y-4">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: DASHBOARD BRACKET & LIVE SCORE -->
     <section id="viewDash" class="hidden space-y-5">
       
       <!-- Live Score Board -->
@@ -276,7 +298,7 @@
   </div>
 
   <script>
-    // 1. Firebase Config Dengan URL Server Singapore Milik Lo
+    // 1. Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAg6aeLdlFFdjZQuuxxl4iRKu0CUdOyD04",
       authDomain: "funmatch-kkg.firebaseapp.com",
@@ -293,12 +315,12 @@
 
     // App State
     let playersCount = 0;
+    let playersData = {};
     let teamNames = ["Tim Alpha", "Tim Bravo", "Tim Charlie", "Tim Delta"];
 
-    // Initialize Lucide Icons
     lucide.createIcons();
 
-    // 2. Realtime Listener dari Firebase Cloud
+    // 2. Realtime Database Listeners
     db.ref('teams').on('value', snapshot => {
       const data = snapshot.val();
       if (data) {
@@ -312,18 +334,23 @@
         document.getElementById('team2Display').innerText = teamNames[1];
         document.getElementById('sf1Teams').innerText = `${teamNames[0]} vs ${teamNames[1]}`;
         document.getElementById('sf2Teams').innerText = `${teamNames[2]} vs ${teamNames[3]}`;
+        
+        renderTeamsView();
       }
+    });
+
+    db.ref('players').on('value', snapshot => {
+      playersData = snapshot.val() || {};
+      const list = Object.values(playersData);
+      playersCount = list.length;
+      document.getElementById('totalPlayerBadge').innerText = `${playersCount} Peserta`;
+      renderTeamsView();
     });
 
     db.ref('match').on('value', snapshot => {
       const match = snapshot.val() || { score1: 0, score2: 0 };
       document.getElementById('score1Display').innerText = match.score1 || 0;
       document.getElementById('score2Display').innerText = match.score2 || 0;
-    });
-
-    db.ref('players').on('value', snapshot => {
-      const data = snapshot.val() || {};
-      playersCount = Object.keys(data).length;
     });
 
     db.ref('goals').on('value', snapshot => {
@@ -337,7 +364,6 @@
         logContainer.innerHTML = goalsList.map(g => `<p>⚽ <b>${g.scorer}</b> (${g.team})</p>`).join('');
       }
 
-      // Update Top Scorer
       const scorers = {};
       goalsList.forEach(g => {
         scorers[g.scorer] = (scorers[g.scorer] || 0) + 1;
@@ -356,23 +382,68 @@
       }
     });
 
+    // Render Skuad Tim View
+    function renderTeamsView() {
+      const container = document.getElementById('teamsContainer');
+      const playerList = Object.values(playersData);
+
+      container.innerHTML = teamNames.map((tName, idx) => {
+        // Simple Index Assignment Match
+        const members = playerList.filter((p, pIdx) => (pIdx % 4) === idx);
+
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="font-black text-sm text-amber-400">${tName}</h3>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-950 text-slate-400 rounded-md border border-slate-800">${members.length} Pemain</span>
+            </div>
+            <div class="space-y-1.5">
+              ${members.length === 0 ? '<p class="text-xs text-slate-600 italic py-1">Belum ada anggota</p>' : members.map(m => `
+                <div class="flex justify-between items-center bg-slate-950 p-2 rounded-xl text-xs border border-slate-800/80">
+                  <div>
+                    <span class="font-bold text-white block">${m.name}</span>
+                    <span class="text-[10px] text-slate-500">${m.school}</span>
+                  </div>
+                  <span class="px-2 py-0.5 text-[9px] font-bold rounded-md ${m.gender === 'Putra' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-pink-500/10 text-pink-400 border border-pink-500/20'}">
+                    ${m.gender}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     // Actions
     function switchTab(tab) {
       const regView = document.getElementById('viewReg');
+      const teamsView = document.getElementById('viewTeams');
       const dashView = document.getElementById('viewDash');
+
       const regBtn = document.getElementById('tabRegBtn');
+      const teamsBtn = document.getElementById('tabTeamsBtn');
       const dashBtn = document.getElementById('tabDashBtn');
+
+      regView.classList.add('hidden');
+      teamsView.classList.add('hidden');
+      dashView.classList.add('hidden');
+
+      regBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1";
+      teamsBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1";
+      dashBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1";
 
       if (tab === 'reg') {
         regView.classList.remove('hidden');
-        dashView.classList.add('hidden');
-        regBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md";
-        dashBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+        regBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1 shadow-md";
+      } else if (tab === 'teams') {
+        teamsView.classList.remove('hidden');
+        teamsBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1 shadow-md";
+        lucide.createIcons();
       } else {
         dashView.classList.remove('hidden');
-        regView.classList.add('hidden');
-        dashBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md";
-        regBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+        dashBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1 shadow-md";
+        lucide.createIcons();
       }
     }
 
@@ -438,10 +509,11 @@
     }
 
     function resetMatchData() {
-      if (confirm("Yakin ingin menghapus seluruh data skor & pencetak gol?")) {
+      if (confirm("Yakin ingin menghapus seluruh data skor, gol, & peserta?")) {
         db.ref('match').set({ score1: 0, score2: 0 });
         db.ref('goals').remove();
-        alert("Data match berhasil di-reset!");
+        db.ref('players').remove();
+        alert("Seluruh data berhasil di-reset!");
       }
     }
   </script>
