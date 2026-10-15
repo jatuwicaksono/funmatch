@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fun Match Futsal - KKG Gugus IV Kalijaga</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .btn-glow { box-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-black text-lg">
+          KKG
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-bold tracking-widest text-brand-500">Kalijaga Fest 2026</span>
+          <h1 class="text-sm font-extrabold text-white">Fun Match Futsal</h1>
+        </div>
+      </div>
+      <button onclick="toggleAdminModal()" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1">
+        <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-500"></i>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App View -->
+  <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-6">
+
+    <!-- Tab Navigation -->
+    <div class="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+      <button id="tabRegBtn" onclick="switchTab('reg')" class="py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md">
+        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Registrasi
+      </button>
+      <button id="tabDashBtn" onclick="switchTab('dash')" class="py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5">
+        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Live Score & Bagan
+      </button>
+    </div>
+
+    <!-- VIEW 1: REGISTRASI & PENGOLAHAN TIM -->
+    <section id="viewReg" class="space-y-5">
+      <div class="bg-gradient-to-br from-slate-900 to-slate-900/80 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-brand-500/10 rounded-full blur-xl"></div>
+        <h2 class="text-lg font-bold text-white mb-1">Daftar & Acak Tim</h2>
+        <p class="text-xs text-slate-400">Masukkan data diri untuk langsung masuk ke dalam salah satu tim secara otomatis.</p>
+
+        <form id="regForm" onsubmit="handleRegistration(event)" class="mt-4 space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Lengkap / Panggilan</label>
+            <input type="text" id="inputName" required placeholder="Contoh: Pak Ahmad" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-500 text-white placeholder-slate-600">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Asal Sekolah</label>
+            <select id="inputSchool" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-500 text-white">
+              <option value="" disabled selected>-- Pilih Sekolah --</option>
+              <option value="SDN Kalijaga Permai">SDN Kalijaga Permai</option>
+              <option value="SDN Taman Kalijaga Permai">SDN Taman Kalijaga Permai</option>
+              <option value="SDN Penggung 1">SDN Penggung 1</option>
+              <option value="SDN Kebon Pelok">SDN Pelok</option>
+              <option value="SDN Pesantren">SDN Pesantren</option>
+              <option value="SDN Argasunya">SDN Argasunya</option>
+              <option value="SD CIS">SD CIS</option>
+              <option value="SDIT Muhammadiyah">SDIT Muhammadiyah</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Kategori (Jenis Kelamin)</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-800 rounded-xl cursor-pointer bg-slate-950 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 text-xs font-semibold text-slate-300">
+                <input type="radio" name="gender" value="Putra" required class="accent-brand-500 hidden">
+                <span>Pria</span>
+              </label>
+              <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-800 rounded-xl cursor-pointer bg-slate-950 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 text-xs font-semibold text-slate-300">
+                <input type="radio" name="gender" value="Putri" required class="accent-brand-500 hidden">
+                <span>Wanita</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-500 to-amber-600 hover:from-brand-600 hover:to-amber-700 text-white font-extrabold text-sm rounded-xl transition-all shadow-lg shadow-brand-500/20 btn-glow flex items-center justify-center gap-2 mt-2">
+            <span>SIAP BERSENANG-SENANG</span>
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Result Card Container -->
+      <div id="resultCard" class="hidden bg-slate-900 border-2 border-brand-500/50 p-5 rounded-2xl text-center space-y-3 relative">
+        <div class="text-xs font-bold text-brand-500 uppercase tracking-wider">Hasil Pengocokan Tim</div>
+        <h3 id="resPlayerName" class="text-xl font-black text-white">---</h3>
+        <p id="resPlayerMeta" class="text-xs text-slate-400">---</p>
+        
+        <div class="py-4 px-3 bg-slate-950 border border-slate-800 rounded-xl">
+          <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Anda Bergabung Di</span>
+          <div id="resTeamName" class="text-2xl font-black text-amber-400 mt-1">TIM A</div>
+        </div>
+
+        <button onclick="resetFormView()" class="text-xs text-slate-400 underline hover:text-slate-200 pt-1">Daftarkan Peserta Lain</button>
+      </div>
+    </section>
+
+    <!-- VIEW 2: DASHBOARD BRACKET & LIVE SCORE -->
+    <section id="viewDash" class="hidden space-y-5">
+      
+      <!-- Live Score Board -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-red-500">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> MATCH BERJALAN
+          </span>
+          <span id="matchRoundTitle" class="text-[11px] font-semibold text-slate-400">Semi Final 1</span>
+        </div>
+
+        <div class="flex items-center justify-between text-center py-2">
+          <div class="flex-1">
+            <h4 id="team1Display" class="font-black text-sm text-white">Tim Alpha</h4>
+            <span class="text-[10px] text-slate-500">Gugus IV</span>
+          </div>
+          <div class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center gap-2">
+            <span id="score1Display" class="text-2xl font-black text-brand-500">0</span>
+            <span class="text-xs text-slate-600 font-bold">-</span>
+            <span id="score2Display" class="text-2xl font-black text-brand-500">0</span>
+          </div>
+          <div class="flex-1">
+            <h4 id="team2Display" class="font-black text-sm text-white">Tim Bravo</h4>
+            <span class="text-[10px] text-slate-500">Gugus IV</span>
+          </div>
+        </div>
+
+        <!-- Goal Events Log -->
+        <div id="goalLog" class="text-[11px] text-slate-400 border-t border-slate-800/60 pt-2 space-y-1 max-h-24 overflow-y-auto">
+          <p class="text-center italic text-slate-600">Belum ada gol tercipta</p>
+        </div>
+      </div>
+
+      <!-- Tournament Bracket -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="git-merge" class="w-3.5 h-3.5 text-brand-500"></i> Bagan Turnamen
+        </h3>
+
+        <div class="space-y-2 text-xs">
+          <!-- Semi 1 -->
+          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold block">SEMI FINAL 1</span>
+              <span id="sf1Teams" class="font-bold text-white">Tim Alpha vs Tim Bravo</span>
+            </div>
+            <span id="sf1Status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400">Live</span>
+          </div>
+          <!-- Semi 2 -->
+          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold block">SEMI FINAL 2</span>
+              <span id="sf2Teams" class="font-bold text-white">Tim Charlie vs Tim Delta</span>
+            </div>
+            <span id="sf2Status" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500">Pending</span>
+          </div>
+          <!-- Final -->
+          <div class="p-2.5 bg-gradient-to-r from-brand-950/30 to-slate-950 border border-brand-500/30 rounded-xl flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-brand-400 font-bold block">GRAN FINAL</span>
+              <span id="finalTeams" class="font-bold text-white">Pemenang SF1 vs Pemenang SF2</span>
+            </div>
+            <i data-lucide="trophy" class="w-4 h-4 text-brand-500"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Scorer Board -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="award" class="w-3.5 h-3.5 text-amber-500"></i> Sepatu Emas (Top Scorer)
+        </h3>
+        <div id="topScorerList" class="space-y-1.5 text-xs">
+          <p class="text-slate-600 italic text-center py-2">Data gol akan muncul di sini</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Admin Modal -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+          <i data-lucide="sliders" class="w-4 h-4 text-brand-500"></i> Panel Kontrol Admin
+        </h3>
+        <button onclick="toggleAdminModal()" class="text-slate-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <!-- PIN Input View -->
+      <div id="adminAuthView" class="space-y-3">
+        <label class="block text-xs text-slate-400">Masukkan PIN Admin (Default: 1234)</label>
+        <input type="password" id="adminPinInput" placeholder="••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-bold tracking-widest text-white focus:outline-none focus:border-brand-500">
+        <button onclick="verifyAdminPin()" class="w-full py-2.5 bg-brand-500 text-white font-bold text-xs rounded-xl">Masuk Panel</button>
+      </div>
+
+      <!-- Admin Controls View -->
+      <div id="adminControlView" class="hidden space-y-4 text-xs">
+        
+        <!-- Custom Team Names -->
+        <div class="space-y-2">
+          <label class="font-bold text-slate-300 block">Ubah Nama Tim Real-time:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="t1NameInput" value="Tim Alpha" onchange="saveTeamNames()" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-white">
+            <input type="text" id="t2NameInput" value="Tim Bravo" onchange="saveTeamNames()" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-white">
+            <input type="text" id="t3NameInput" value="Tim Charlie" onchange="saveTeamNames()" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-white">
+            <input type="text" id="t4NameInput" value="Tim Delta" onchange="saveTeamNames()" class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-white">
+          </div>
+        </div>
+
+        <!-- Goal Controller -->
+        <div class="space-y-2 border-t border-slate-800 pt-3">
+          <label class="font-bold text-slate-300 block">Tambah Gol Match Aktif:</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="addGoal(1)" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-bold text-brand-400">+ Gol Tim 1</button>
+            <button onclick="addGoal(2)" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-bold text-brand-400">+ Gol Tim 2</button>
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="border-t border-slate-800 pt-3">
+          <button onclick="resetMatchData()" class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg font-bold">Reset Semua Data Match</button>
+        </div>
+
+        <button onclick="toggleAdminModal()" class="w-full py-2 bg-slate-800 text-slate-400 font-semibold rounded-lg mt-2">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Firebase Config Dengan URL Server Singapore Milik Lo
+    const firebaseConfig = {
+      apiKey: "AIzaSyAg6aeLdlFFdjZQuuxxl4iRKu0CUdOyD04",
+      authDomain: "funmatch-kkg.firebaseapp.com",
+      databaseURL: "https://funmatch-kkg-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "funmatch-kkg",
+      storageBucket: "funmatch-kkg.firebasestorage.app",
+      messagingSenderId: "169552339719",
+      appId: "1:169552339719:web:1688769afe99028fa45ba2",
+      measurementId: "G-F5S1VNQ4PS"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // App State
+    let playersCount = 0;
+    let teamNames = ["Tim Alpha", "Tim Bravo", "Tim Charlie", "Tim Delta"];
+
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // 2. Realtime Listener dari Firebase Cloud
+    db.ref('teams').on('value', snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        teamNames = data;
+        document.getElementById('t1NameInput').value = teamNames[0];
+        document.getElementById('t2NameInput').value = teamNames[1];
+        document.getElementById('t3NameInput').value = teamNames[2];
+        document.getElementById('t4NameInput').value = teamNames[3];
+
+        document.getElementById('team1Display').innerText = teamNames[0];
+        document.getElementById('team2Display').innerText = teamNames[1];
+        document.getElementById('sf1Teams').innerText = `${teamNames[0]} vs ${teamNames[1]}`;
+        document.getElementById('sf2Teams').innerText = `${teamNames[2]} vs ${teamNames[3]}`;
+      }
+    });
+
+    db.ref('match').on('value', snapshot => {
+      const match = snapshot.val() || { score1: 0, score2: 0 };
+      document.getElementById('score1Display').innerText = match.score1 || 0;
+      document.getElementById('score2Display').innerText = match.score2 || 0;
+    });
+
+    db.ref('players').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      playersCount = Object.keys(data).length;
+    });
+
+    db.ref('goals').on('value', snapshot => {
+      const goalsData = snapshot.val() || {};
+      const goalsList = Object.values(goalsData);
+      const logContainer = document.getElementById('goalLog');
+      
+      if (goalsList.length === 0) {
+        logContainer.innerHTML = '<p class="text-center italic text-slate-600">Belum ada gol tercipta</p>';
+      } else {
+        logContainer.innerHTML = goalsList.map(g => `<p>⚽ <b>${g.scorer}</b> (${g.team})</p>`).join('');
+      }
+
+      // Update Top Scorer
+      const scorers = {};
+      goalsList.forEach(g => {
+        scorers[g.scorer] = (scorers[g.scorer] || 0) + 1;
+      });
+      const sorted = Object.entries(scorers).sort((a,b) => b[1] - a[1]);
+      const topContainer = document.getElementById('topScorerList');
+      if (sorted.length === 0) {
+        topContainer.innerHTML = '<p class="text-slate-600 italic text-center py-2">Data gol akan muncul di sini</p>';
+      } else {
+        topContainer.innerHTML = sorted.map(([name, count], idx) => `
+          <div class="flex justify-between items-center p-2 bg-slate-950 border border-slate-800 rounded-lg">
+            <span>${idx === 0 ? '👑' : '⚽'} <b>${name}</b></span>
+            <span class="font-bold text-amber-400">${count} Gol</span>
+          </div>
+        `).join('');
+      }
+    });
+
+    // Actions
+    function switchTab(tab) {
+      const regView = document.getElementById('viewReg');
+      const dashView = document.getElementById('viewDash');
+      const regBtn = document.getElementById('tabRegBtn');
+      const dashBtn = document.getElementById('tabDashBtn');
+
+      if (tab === 'reg') {
+        regView.classList.remove('hidden');
+        dashView.classList.add('hidden');
+        regBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md";
+        dashBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+      } else {
+        dashView.classList.remove('hidden');
+        regView.classList.add('hidden');
+        dashBtn.className = "py-2.5 rounded-lg bg-brand-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md";
+        regBtn.className = "py-2.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center justify-center gap-1.5";
+      }
+    }
+
+    function handleRegistration(e) {
+      e.preventDefault();
+      const name = document.getElementById('inputName').value;
+      const school = document.getElementById('inputSchool').value;
+      const gender = document.querySelector('input[name="gender"]:checked').value;
+
+      const assignedTeamIndex = playersCount % 4;
+      const assignedTeam = teamNames[assignedTeamIndex];
+
+      db.ref('players').push({ name, school, gender, team: assignedTeam, timestamp: Date.now() });
+
+      document.getElementById('regForm').classList.add('hidden');
+      document.getElementById('resultCard').classList.remove('hidden');
+      document.getElementById('resPlayerName').innerText = name;
+      document.getElementById('resPlayerMeta').innerText = `${school} • ${gender}`;
+      document.getElementById('resTeamName').innerText = assignedTeam;
+    }
+
+    function resetFormView() {
+      document.getElementById('regForm').reset();
+      document.getElementById('regForm').classList.remove('hidden');
+      document.getElementById('resultCard').classList.add('hidden');
+    }
+
+    function toggleAdminModal() {
+      document.getElementById('adminModal').classList.toggle('hidden');
+    }
+
+    function verifyAdminPin() {
+      const pin = document.getElementById('adminPinInput').value;
+      if (pin === '1234') {
+        document.getElementById('adminAuthView').classList.add('hidden');
+        document.getElementById('adminControlView').classList.remove('hidden');
+      } else {
+        alert('PIN Admin Salah! (Gunakan: 1234)');
+      }
+    }
+
+    function saveTeamNames() {
+      const updated = [
+        document.getElementById('t1NameInput').value,
+        document.getElementById('t2NameInput').value,
+        document.getElementById('t3NameInput').value,
+        document.getElementById('t4NameInput').value
+      ];
+      db.ref('teams').set(updated);
+    }
+
+    function addGoal(teamNum) {
+      db.ref('match').once('value', snapshot => {
+        const match = snapshot.val() || { score1: 0, score2: 0 };
+        if (teamNum === 1) match.score1 = (match.score1 || 0) + 1;
+        if (teamNum === 2) match.score2 = (match.score2 || 0) + 1;
+        db.ref('match').set(match);
+
+        const scorer = prompt("Nama pencetak gol:") || "Pemain";
+        const teamName = teamNum === 1 ? teamNames[0] : teamNames[1];
+        db.ref('goals').push({ scorer, team: teamName, timestamp: Date.now() });
+      });
+    }
+
+    function resetMatchData() {
+      if (confirm("Yakin ingin menghapus seluruh data skor & pencetak gol?")) {
+        db.ref('match').set({ score1: 0, score2: 0 });
+        db.ref('goals').remove();
+        alert("Data match berhasil di-reset!");
+      }
+    }
+  </script>
+</body>
+</html>
